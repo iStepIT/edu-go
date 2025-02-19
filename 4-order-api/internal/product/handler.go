@@ -50,7 +50,7 @@ func (handler *ProductHandler) Update() http.HandlerFunc {
 		}
 		idString := r.PathValue("id")
 		id, _ := parseId(idString)
-		link, err := handler.ProductRepository.Update(&Product{
+		product, err := handler.ProductRepository.Update(&Product{
 			Model:       gorm.Model{ID: id},
 			Name:        body.Name,
 			Description: body.Description,
@@ -60,7 +60,7 @@ func (handler *ProductHandler) Update() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		res.Json(w, link, 201)
+		res.Json(w, product, 201)
 	}
 }
 
@@ -68,7 +68,7 @@ func (handler *ProductHandler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idString := r.PathValue("id")
 		id, _ := parseId(idString)
-		_, err := handler.ProductRepository.GetById(id)
+		body, err := handler.ProductRepository.GetById(id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -78,7 +78,11 @@ func (handler *ProductHandler) Delete() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		res.Json(w, nil, 200)
+		data := ProductUpdateResponse{
+			Name:   body.Name,
+			Status: "deleted",
+		}
+		res.Json(w, data, 200)
 	}
 }
 
@@ -86,12 +90,12 @@ func (handler *ProductHandler) GetById() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idString := r.PathValue("id")
 		id, _ := parseId(idString)
-		_, err := handler.ProductRepository.GetById(id)
+		product, err := handler.ProductRepository.GetById(id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		res.Json(w, nil, 200)
+		res.Json(w, product, 200)
 	}
 }
 

@@ -11,3 +11,8 @@ type ProductUpdateRequest struct {
 	Description string `json:"description" validate:"required"`
 	Images      string `json:"img_url" validate:"required,url"`
 }
+
+type ProductUpdateResponse struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
