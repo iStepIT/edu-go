@@ -3,6 +3,7 @@ package verify
 import (
 	"3-validation-api/configs"
 	"3-validation-api/pkg/req"
+	"3-validation-api/pkg/res"
 	"fmt"
 	"github.com/jordan-wright/email"
 	"log"
@@ -40,10 +41,7 @@ func (handler *VerifyHandler) Send() http.HandlerFunc {
 		mu.Unlock()
 
 		sendMail(body.Email, link)
-		fmt.Println(mailVault)
-		fmt.Println(body)
-		fmt.Println(hash)
-		fmt.Println(link)
+
 		fmt.Printf("Send to %s", body.Email)
 	}
 }
@@ -64,23 +62,30 @@ func sendMail(to, link string) {
 
 func (handler *VerifyHandler) VerifyMail() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := req.HandleBody[VerifyMailRequest](&w, r)
+		_, err := req.HandleBody[VerifyMailRequest](&w, r)
 		if err != nil {
 			return
 		}
 		hash := r.PathValue("hash")
 		mu.Lock()
-		_, exist := mailVault[hash]
+		mail, exist := mailVault[hash]
+
 		if exist {
 			mu.Unlock()
-			fmt.Fprintf(w, "false")
+			verify := VerifyMailResponse{
+				Verified: true,
+			}
+			res.Json(w, verify, 200)
 		} else {
 			delete(mailVault, hash)
 			mu.Unlock()
-			fmt.Fprintf(w, "true")
+			verify := VerifyMailResponse{
+				Verified: false,
+			}
+			res.Json(w, verify, 404)
 		}
-		fmt.Println(body)
-		fmt.Println("Verify")
+
+		fmt.Printf("Verify mail %s\n", mail)
 	}
 
 }
